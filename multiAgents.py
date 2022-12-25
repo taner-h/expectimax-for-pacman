@@ -160,14 +160,12 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        root_value = self.expectimax(gameState,0,self.index)
-        action = root_value[1]
-        return action
+        return self.expectimax(gameState,0,0)[1]
         
     def expectimax(self,gameState,depth,agent):
         # sira tekrar pacman'de ise depth'i artır ve agent indeksini 0 yap
         if agent == gameState.getNumAgents():
-            agent = agent = 0
+            agent = 0
             depth = depth + 1
         
          # terminal state'te ise evaluation degerini dondur
@@ -177,11 +175,11 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         if agent == 0: # pacman
             bestValue = [-999999] 
             for action in gameState.getLegalActions(agent):
-                nextState = gameState.generateSuccessor(agent, action)
-                nextValue = self.expectimax(nextState, depth, agent + 1)[0]
+                childState = gameState.generateSuccessor(agent, action)
+                childValue = self.expectimax(childState, depth, agent + 1)[0]
                 
-                if (nextValue >= bestValue[0]):
-                    value = [nextValue, action]
+                if (childValue >= bestValue[0]):
+                    bestValue = [childValue, action]
 
             return bestValue
         else: # ghost'lar
@@ -192,9 +190,9 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                 return [self.evaluationFunction(gameState)]
                     
             for action in legalActions:
-                nextState = gameState.generateSuccessor(agent, action)
-                nextValue = self.expectimax(nextState, depth, agent + 1)[0]
-                totalValue += nextValue
+                childState = gameState.generateSuccessor(agent, action)
+                childValue = self.expectimax(childState, depth, agent + 1)[0]
+                totalValue += childValue
             
             averageValue = totalValue / len(gameState.getLegalActions(agent))
             return [averageValue]
