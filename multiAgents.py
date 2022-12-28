@@ -251,7 +251,6 @@ def betterEvaluationFunction(currentGameState):
     ghosts = currentGameState.getGhostStates()
     scared = list(filter(lambda x: x.scaredTimer > 0, ghosts))
 
-
     closestFood = getClosestFood(position, food)
     closestGhost = getClosestGhost(position, ghosts)
     closestCapsule = getClosestCapsule(position, capsules)
@@ -266,9 +265,6 @@ def betterEvaluationFunction(currentGameState):
    
     if len(capsules) == len(previousCapsules) - 1:
         score += 300
-  
-    # if totalFoodCount == 1 and len(capsules):
-    #     score -= 1000
 
     if totalFoodCount == 0:
         score *= 2
@@ -276,14 +272,17 @@ def betterEvaluationFunction(currentGameState):
     if position == previousPosition:
         score -= 100
 
-    # if (closestFood < closestGhost + 3): 
-    #     score *= 2
     if previousClosestFood == 1 and closestFood > 5:
         score += 200
 
     score += (100 - closestFood * 10) 
     score += (200 - closestCapsule * 20)
     score -= totalFoodCount * 30
+
+    score += 0.50 * totalFoodDistance
+
+    # if totalFoodCount == 1 and len(capsules):
+    #     score -= 1000
 
     # score -= totalFoodDistance / totalFoodCount * 25
 
@@ -293,9 +292,8 @@ def betterEvaluationFunction(currentGameState):
     #     if closestFood == 0:
     #         score += 100
 
-
-
-    score += 0.50 * totalFoodDistance
+    # if (closestFood < closestGhost + 3): 
+    #     score *= 2
 
     # TODO prev leri queue yapip pop push yapilacak
     # bir onceki eval function cagirildigindaki degil de
