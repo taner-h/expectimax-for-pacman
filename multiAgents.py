@@ -20,6 +20,8 @@ from game import Agent
 
 previousCapsules = 'prevCapsules'
 previousScared = 'prevScared'
+previousPosition = 'prevPosition'
+previousClosestFood = 'prevClosestFood'
 
 class ReflexAgent(Agent):
     """
@@ -210,19 +212,19 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     DEPTH_PLUS_ONE = 4
-    global previousCapsules, previousScared
+    global previousCapsules, previousScared, previousPosition, previousClosestFood
 
     def getClosestFood(cur_pos, allFood):
         food_distances = []
         for food in allFood:
             food_distances.append(util.manhattanDistance(food, cur_pos))
-        return min(food_distances) if len(food_distances) > 0 else 1
+        return min(food_distances) if len(food_distances) > 0 else 0
 
     def getClosestGhost(cur_pos, ghosts):
         ghost_distance = []
         for ghost in ghosts:
             ghost_distance.append(util.manhattanDistance(ghost.getPosition(), cur_pos))
-        return min(ghost_distance) if len(ghost_distance) > 0 else DEPTH_PLUS_ONE
+        return min(ghost_distance) if len(ghost_distance) > 0 else 1
 
     def getTotalFoodDistance(cur_pos, food_positions):
         food_distances = []
@@ -242,52 +244,68 @@ def betterEvaluationFunction(currentGameState):
             capsule_distances.append(util.manhattanDistance(capsule, cur_pos))
         return min(capsule_distances) if len(capsule_distances) > 0 else 1
 
-    pacman_pos = currentGameState.getPacmanPosition()
+    position = currentGameState.getPacmanPosition()
     score = currentGameState.getScore()
     food = currentGameState.getFood().asList()
     capsules = currentGameState.getCapsules()
     ghosts = currentGameState.getGhostStates()
     scared = list(filter(lambda x: x.scaredTimer > 0, ghosts))
-    # print('scared: ', scared)
-    
 
-    # print(scared)
 
-    # newScaredTimes = [ghostState.scaredTimer for ghostState in ghosts]
-    # print(ghostStates)
-
-    closestFood = getClosestFood(pacman_pos, food)
-    closestGhost = getClosestGhost(pacman_pos, ghosts)
-    closestCapsule = getClosestCapsule(pacman_pos, capsules)
-
-    totalFoodDistance = getTotalFoodDistance(pacman_pos, food)
-    totalScaredDistance = getTotalScaredDistance(pacman_pos, scared)
+    closestFood = getClosestFood(position, food)
+    closestGhost = getClosestGhost(position, ghosts)
+    closestCapsule = getClosestCapsule(position, capsules)
+    totalFoodDistance = getTotalFoodDistance(position, food)
+    totalScaredDistance = getTotalScaredDistance(position, scared)
     totalFoodCount = len(food)
-    print(totalScaredDistance)
 
     if len(scared) > 0:
-        score += (len(scared) - len(previousScared)) * 100
+        score += (len(scared) - len(previousScared)) * 200
         score += totalScaredDistance * 10
+        score += closestCapsule * 10
    
     if len(capsules) == len(previousCapsules) - 1:
-        score *= 2
-
-    # if (closestFood < closestGhost + 3): 
-    #     score *= 2
-    if totalFoodCount == 1 and len(capsules):
-        score -= 1000
+        score += 300
+  
+    # if totalFoodCount == 1 and len(capsules):
+    #     score -= 1000
 
     if totalFoodCount == 0:
         score *= 2
-    elif totalFoodCount < 10:    
-        score -= closestFood * 5
 
-    score -= closestCapsule * 5
+    if position == previousPosition:
+        score -= 100
 
-    score += .42 * totalFoodDistance
+    # if (closestFood < closestGhost + 3): 
+    #     score *= 2
+    if previousClosestFood == 1 and closestFood > 5:
+        score += 200
+
+    score += (100 - closestFood * 10) 
+    score += (200 - closestCapsule * 20)
+    score -= totalFoodCount * 30
+
+    # score -= totalFoodDistance / totalFoodCount * 25
+
+    # if totalFoodCount < 10:
+    #     score += 250 - closestFood * 5
+    #     score += (10 - totalFoodCount) * 50
+    #     if closestFood == 0:
+    #         score += 100
+
+
+
+    score += 0.50 * totalFoodDistance
+
+    # TODO prev leri queue yapip pop push yapilacak
+    # bir onceki eval function cagirildigindaki degil de
+    # bir onceki hamleninkiler alinsin diye
     previousCapsules = capsules
     previousScared = scared
-    # print(currentGameState.getScore())
+    previousPosition = previousPosition
+    previousClosestFood = closestFood
+    # print(f'food: {totalFoodCount}, score: {score}, closestFood: {closestFood}')
+
     return score
 
 
