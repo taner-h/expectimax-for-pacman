@@ -18,6 +18,9 @@ import random, util
 
 from game import Agent
 
+previousCapsules = 'prevCapsules'
+previousScared = 'prevScared'
+
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -182,6 +185,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
                     bestValue = [childValue, action]
 
             return bestValue
+
         else: # ghost'lar
             totalValue = 0
             legalActions = gameState.getLegalActions(agent)
@@ -205,44 +209,88 @@ def betterEvaluationFunction(currentGameState):
 
     DESCRIPTION: <write something here so we know what you did>
     """
-    def closest_dot(cur_pos, food_pos):
+    DEPTH_PLUS_ONE = 4
+    global previousCapsules, previousScared
+
+    def getClosestFood(cur_pos, allFood):
         food_distances = []
-        for food in food_pos:
+        for food in allFood:
             food_distances.append(util.manhattanDistance(food, cur_pos))
         return min(food_distances) if len(food_distances) > 0 else 1
 
-    def closest_ghost(cur_pos, ghosts):
-        food_distances = []
-        for food in ghosts:
-            food_distances.append(util.manhattanDistance(food.getPosition(), cur_pos))
-        return min(food_distances) if len(food_distances) > 0 else 1
+    def getClosestGhost(cur_pos, ghosts):
+        ghost_distance = []
+        for ghost in ghosts:
+            ghost_distance.append(util.manhattanDistance(ghost.getPosition(), cur_pos))
+        return min(ghost_distance) if len(ghost_distance) > 0 else DEPTH_PLUS_ONE
 
-
-    def ghost_stuff(cur_pos, ghost_states, radius, scores):
-        num_ghosts = 0
-        for ghost in ghost_states:
-            if util.manhattanDistance(ghost.getPosition(), cur_pos) <= radius:
-                scores -= 30
-                num_ghosts += 1
-        return scores
-
-    def food_stuff(cur_pos, food_positions):
+    def getTotalFoodDistance(cur_pos, food_positions):
         food_distances = []
         for food in food_positions:
             food_distances.append(util.manhattanDistance(food, cur_pos))
-        return sum(food_distances)
+        return -sum(food_distances)
+    
+    def getTotalScaredDistance(cur_pos, scared):
+        scaredDistance = []
+        for ghost in scared:
+            scaredDistance.append(util.manhattanDistance(ghost.getPosition(), cur_pos))
+        return -sum(scaredDistance)
 
-    def num_food(cur_pos, food):
-        return len(food)
+    def getClosestCapsule(cur_pos, capsules):
+        capsule_distances = []
+        for capsule in capsules:
+            capsule_distances.append(util.manhattanDistance(capsule, cur_pos))
+        return min(capsule_distances) if len(capsule_distances) > 0 else 1
 
     pacman_pos = currentGameState.getPacmanPosition()
     score = currentGameState.getScore()
     food = currentGameState.getFood().asList()
+    capsules = currentGameState.getCapsules()
     ghosts = currentGameState.getGhostStates()
+    scared = list(filter(lambda x: x.scaredTimer > 0, ghosts))
+    # print('scared: ', scared)
+    
 
-    score = score * 2 if closest_dot(pacman_pos, food) < closest_ghost(pacman_pos, ghosts) + 3 else score
-    score -= .35 * food_stuff(pacman_pos, food)
+    # print(scared)
+
+    # newScaredTimes = [ghostState.scaredTimer for ghostState in ghosts]
+    # print(ghostStates)
+
+    closestFood = getClosestFood(pacman_pos, food)
+    closestGhost = getClosestGhost(pacman_pos, ghosts)
+    closestCapsule = getClosestCapsule(pacman_pos, capsules)
+
+    totalFoodDistance = getTotalFoodDistance(pacman_pos, food)
+    totalScaredDistance = getTotalScaredDistance(pacman_pos, scared)
+    totalFoodCount = len(food)
+    print(totalScaredDistance)
+
+    if len(scared) > 0:
+        score += (len(scared) - len(previousScared)) * 100
+        score += totalScaredDistance * 10
+   
+    if len(capsules) == len(previousCapsules) - 1:
+        score *= 2
+
+    # if (closestFood < closestGhost + 3): 
+    #     score *= 2
+    if totalFoodCount == 1 and len(capsules):
+        score -= 1000
+
+    if totalFoodCount == 0:
+        score *= 2
+    elif totalFoodCount < 10:    
+        score -= closestFood * 5
+
+    score -= closestCapsule * 5
+
+    score += .42 * totalFoodDistance
+    previousCapsules = capsules
+    previousScared = scared
+    # print(currentGameState.getScore())
     return score
+
+
 
     
 
