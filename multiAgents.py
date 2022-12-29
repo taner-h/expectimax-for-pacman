@@ -298,7 +298,11 @@ def betterEvaluationFunction(currentGameState):
             score -= 400
 
     if totalFoodCount == 0:
-        score += 1000
+        if len(scared) > 0:
+            score -= 500
+        else:
+            score += 1000
+        
 
     if position == previousPosition:
         score -= 200
@@ -319,6 +323,7 @@ def betterEvaluationFunction(currentGameState):
     # TODO dusuk food count sayisi icin bi heuristic yaz
 
     # TODO scared varken son yemi yemesin
+
 
 
     # if haveLost == True:
