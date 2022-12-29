@@ -287,7 +287,7 @@ def betterEvaluationFunction(currentGameState):
     foodInRange = sum(distance <= RANGE for distance in foodDistance)
     totalFoodCount = len(food)
 
-    if len(scared) > 0:
+    if len(scared) > 0 or len(previousScared) > 0 :
         score += (len(scared) - len(previousScared)) * 200
         score += totalScaredDistance * 10
         score += closestCapsule * 10
@@ -303,7 +303,7 @@ def betterEvaluationFunction(currentGameState):
     if position == previousPosition:
         score -= 200
 
-    if previousClosestFood == 1 and closestFood > 3:
+    if previousClosestFood == 1 and closestFood > 4:
         score += 100
 
     score += (100 - closestFood * 5) 
@@ -317,6 +317,8 @@ def betterEvaluationFunction(currentGameState):
     # TODO initial food count alip, initial - current * bisey (pozitif)
 
     # TODO dusuk food count sayisi icin bi heuristic yaz
+
+    # TODO scared varken son yemi yemesin
 
 
     # if haveLost == True:
