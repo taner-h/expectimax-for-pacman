@@ -165,9 +165,28 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        return self.expectimax(gameState,0,0)[1]
+        global previousPosition, previousCapsules, previousScared, previousClosestFood
+        
+        def getClosestFood(cur_pos, allFood):
+            food_distances = []
+            for food in allFood:
+                food_distances.append(util.manhattanDistance(food, cur_pos))
+            return min(food_distances) if len(food_distances) > 0 else 0
+
+        action = self.expectimax(gameState,0,0)[1]
+
+        previousPosition = gameState.getPacmanPosition()
+        previousCapsules = gameState.getCapsules()
+        ghosts = gameState.getGhostStates()
+        previousScared = list(filter(lambda x: x.scaredTimer > 0, ghosts))
+        food = gameState.getFood().asList()
+        previousClosestFood = getClosestFood(previousPosition, food)
+
+        # print('previous position',previousPosition)
+        return action
         
     def expectimax(self,gameState,depth,agent):
+
         # sira tekrar pacman'de ise depth'i artır ve agent indeksini 0 yap
         if agent == gameState.getNumAgents():
             agent = 0
@@ -211,7 +230,8 @@ def betterEvaluationFunction(currentGameState):
 
     DESCRIPTION: <write something here so we know what you did>
     """
-    DEPTH_PLUS_ONE = 4
+
+    RANGE = 5
     global previousCapsules, previousScared, previousPosition, previousClosestFood
 
     def getClosestFood(cur_pos, allFood):
@@ -219,6 +239,12 @@ def betterEvaluationFunction(currentGameState):
         for food in allFood:
             food_distances.append(util.manhattanDistance(food, cur_pos))
         return min(food_distances) if len(food_distances) > 0 else 0
+
+    def getFoodDistance(cur_pos, allFood):
+        food_distances = []
+        for food in allFood:
+            food_distances.append(util.manhattanDistance(food, cur_pos))
+        return food_distances
 
     def getClosestGhost(cur_pos, ghosts):
         ghost_distance = []
@@ -249,6 +275,7 @@ def betterEvaluationFunction(currentGameState):
     food = currentGameState.getFood().asList()
     capsules = currentGameState.getCapsules()
     ghosts = currentGameState.getGhostStates()
+    haveLost = currentGameState.isLose()
     scared = list(filter(lambda x: x.scaredTimer > 0, ghosts))
 
     closestFood = getClosestFood(position, food)
@@ -256,6 +283,8 @@ def betterEvaluationFunction(currentGameState):
     closestCapsule = getClosestCapsule(position, capsules)
     totalFoodDistance = getTotalFoodDistance(position, food)
     totalScaredDistance = getTotalScaredDistance(position, scared)
+    foodDistance = getFoodDistance(position, food)
+    foodInRange = sum(distance <= RANGE for distance in foodDistance)
     totalFoodCount = len(food)
 
     if len(scared) > 0:
@@ -265,21 +294,38 @@ def betterEvaluationFunction(currentGameState):
    
     if len(capsules) == len(previousCapsules) - 1:
         score += 300
+        if len(previousScared) > 0:
+            score -= 400
 
     if totalFoodCount == 0:
-        score *= 2
+        score += 1000
 
     if position == previousPosition:
-        score -= 100
+        score -= 200
 
-    if previousClosestFood == 1 and closestFood > 5:
-        score += 200
+    if previousClosestFood == 1 and closestFood > 3:
+        score += 100
 
-    score += (100 - closestFood * 10) 
+    score += (100 - closestFood * 5) 
+
     score += (200 - closestCapsule * 20)
+
     score -= totalFoodCount * 30
 
     score += 0.50 * totalFoodDistance
+
+    # TODO initial food count alip, initial - current * bisey (pozitif)
+
+    # TODO dusuk food count sayisi icin bi heuristic yaz
+
+
+    # if haveLost == True:
+    # score -= 50
+
+    # score -= foodInRange * 2
+
+    # if foodInRange == 0:
+    #     score += 50
 
     # if totalFoodCount == 1 and len(capsules):
     #     score -= 1000
@@ -295,15 +341,9 @@ def betterEvaluationFunction(currentGameState):
     # if (closestFood < closestGhost + 3): 
     #     score *= 2
 
-    # TODO prev leri queue yapip pop push yapilacak
-    # bir onceki eval function cagirildigindaki degil de
-    # bir onceki hamleninkiler alinsin diye
-    previousCapsules = capsules
-    previousScared = scared
-    previousPosition = previousPosition
-    previousClosestFood = closestFood
+    # print('prev', len(previousScared))
+    # print('cur', len(scared))
     # print(f'food: {totalFoodCount}, score: {score}, closestFood: {closestFood}')
-
     return score
 
 
