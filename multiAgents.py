@@ -165,14 +165,12 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        global previousPosition, previousCapsules, previousScared, previousClosestFood
-        
-        def getClosestFood(cur_pos, allFood):
-            food_distances = []
-            for food in allFood:
-                food_distances.append(util.manhattanDistance(food, cur_pos))
+        def getClosestFood(pacmanPosition, allFood):
+            food_distances = [util.manhattanDistance(food, pacmanPosition) for food in allFood]
             return min(food_distances) if len(food_distances) > 0 else 0
 
+        global previousPosition, previousCapsules, previousScared, previousClosestFood
+        
         action = self.expectimax(gameState,0,0)[1]
 
         previousPosition = gameState.getPacmanPosition()
@@ -182,7 +180,6 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         food = gameState.getFood().asList()
         previousClosestFood = getClosestFood(previousPosition, food)
 
-        # print('previous position',previousPosition)
         return action
         
     def expectimax(self,gameState,depth,agent):
@@ -231,43 +228,26 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
 
-    RANGE = 5
     global previousCapsules, previousScared, previousPosition, previousClosestFood
 
-    def getClosestFood(cur_pos, allFood):
-        food_distances = []
-        for food in allFood:
-            food_distances.append(util.manhattanDistance(food, cur_pos))
+    def getClosestFood(pacmanPosition, allFood):
+        food_distances = [util.manhattanDistance(food, pacmanPosition) for food in allFood]
         return min(food_distances) if len(food_distances) > 0 else 0
 
-    def getFoodDistance(cur_pos, allFood):
-        food_distances = []
-        for food in allFood:
-            food_distances.append(util.manhattanDistance(food, cur_pos))
-        return food_distances
-
-    def getClosestGhost(cur_pos, ghosts):
-        ghost_distance = []
-        for ghost in ghosts:
-            ghost_distance.append(util.manhattanDistance(ghost.getPosition(), cur_pos))
+    def getClosestGhost(pacmanPosition, ghosts):
+        ghost_distance = [util.manhattanDistance(ghost.getPosition(), pacmanPosition) for ghost in ghosts]
         return min(ghost_distance) if len(ghost_distance) > 0 else 1
 
-    def getTotalFoodDistance(cur_pos, food_positions):
-        food_distances = []
-        for food in food_positions:
-            food_distances.append(util.manhattanDistance(food, cur_pos))
+    def getTotalFoodDistance(pacmanPosition, food_positions):
+        food_distances = [util.manhattanDistance(food, pacmanPosition) for food in food_positions]
         return -sum(food_distances)
     
-    def getTotalScaredDistance(cur_pos, scared):
-        scaredDistance = []
-        for ghost in scared:
-            scaredDistance.append(util.manhattanDistance(ghost.getPosition(), cur_pos))
+    def getTotalScaredDistance(pacmanPosition, scared):
+        scaredDistance = [util.manhattanDistance(ghost.getPosition(), pacmanPosition) for ghost in scared]
         return -sum(scaredDistance)
 
-    def getClosestCapsule(cur_pos, capsules):
-        capsule_distances = []
-        for capsule in capsules:
-            capsule_distances.append(util.manhattanDistance(capsule, cur_pos))
+    def getClosestCapsule(pacmanPosition, capsules):
+        capsule_distances = [util.manhattanDistance(capsule, pacmanPosition) for capsule in capsules]
         return min(capsule_distances) if len(capsule_distances) > 0 else 1
 
     position = currentGameState.getPacmanPosition()
@@ -283,8 +263,6 @@ def betterEvaluationFunction(currentGameState):
     closestCapsule = getClosestCapsule(position, capsules)
     totalFoodDistance = getTotalFoodDistance(position, food)
     totalScaredDistance = getTotalScaredDistance(position, scared)
-    foodDistance = getFoodDistance(position, food)
-    foodInRange = sum(distance <= RANGE for distance in foodDistance)
     totalFoodCount = len(food)
 
     if len(scared) > 0 or len(previousScared) > 0 :
@@ -303,7 +281,6 @@ def betterEvaluationFunction(currentGameState):
         else:
             score += 1000
         
-
     if position == previousPosition:
         score -= 200
 
@@ -324,7 +301,14 @@ def betterEvaluationFunction(currentGameState):
 
     # TODO scared varken son yemi yemesin
 
+    # def getFoodDistance(cur_pos, allFood):
+    #     food_distances = []
+    #     for food in allFood:
+    #         food_distances.append(util.manhattanDistance(food, cur_pos))
+    #     return food_distances
 
+    # foodDistance = getFoodDistance(position, food)
+    # foodInRange = sum(distance <= RANGE for distance in foodDistance)
 
     # if haveLost == True:
     # score -= 50
