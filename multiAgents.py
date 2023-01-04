@@ -155,16 +155,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
-    """
-      Your expectimax agent (question 4)
-    """
 
     def getAction(self, gameState):
-        """
-          Returns the expectimax action using self.depth and self.evaluationFunction
-          All ghosts should be modeled as choosing uniformly at random from their
-          legal moves.
-        """
+
         def getClosestFood(pacmanPosition, allFood):
             food_distances = [util.manhattanDistance(food, pacmanPosition) for food in allFood]
             return min(food_distances) if len(food_distances) > 0 else 0
@@ -221,12 +214,6 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
   
 
 def betterEvaluationFunction(currentGameState):
-    """
-    Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
-    evaluation function (question 5).
-
-    DESCRIPTION: <write something here so we know what you did>
-    """
 
     global previousCapsules, previousScared, previousPosition, previousClosestFood
 
@@ -295,51 +282,7 @@ def betterEvaluationFunction(currentGameState):
 
     score += 0.50 * totalFoodDistance
 
-    # TODO initial food count alip, initial - current * bisey (pozitif)
-
-    # TODO dusuk food count sayisi icin bi heuristic yaz
-
-    # TODO scared varken son yemi yemesin
-
-    # def getFoodDistance(cur_pos, allFood):
-    #     food_distances = []
-    #     for food in allFood:
-    #         food_distances.append(util.manhattanDistance(food, cur_pos))
-    #     return food_distances
-
-    # foodDistance = getFoodDistance(position, food)
-    # foodInRange = sum(distance <= RANGE for distance in foodDistance)
-
-    # if haveLost == True:
-    # score -= 50
-
-    # score -= foodInRange * 2
-
-    # if foodInRange == 0:
-    #     score += 50
-
-    # if totalFoodCount == 1 and len(capsules):
-    #     score -= 1000
-
-    # score -= totalFoodDistance / totalFoodCount * 25
-
-    # if totalFoodCount < 10:
-    #     score += 250 - closestFood * 5
-    #     score += (10 - totalFoodCount) * 50
-    #     if closestFood == 0:
-    #         score += 100
-
-    # if (closestFood < closestGhost + 3): 
-    #     score *= 2
-
-    # print('prev', len(previousScared))
-    # print('cur', len(scared))
-    # print(f'food: {totalFoodCount}, score: {score}, closestFood: {closestFood}')
     return score
-
-
-
-    
 
 # Abbreviation
 better = betterEvaluationFunction
